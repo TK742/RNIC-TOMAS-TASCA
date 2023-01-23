@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, FlatList, TextInput, Button, Keyboard } from 'react-native';
-import Card from './src/Card';
+import { View, Text, FlatList, TextInput, Button, SafeAreaView, KeyboardAvoidingView, StyleSheet, ImageBackground } from 'react-native';
+import Card from './src/components/Card';
+import mockedData from './src/constants/MockedData';
 
 interface Task {
   id: number,
@@ -10,10 +11,9 @@ interface Task {
 }
 
 const MainScreen: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>(mockedData);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const titleInputRef = useRef<TextInput>(null);
   const descriptionInputRef = useRef<TextInput>(null);
 
   const handleAddTask = () => {
@@ -23,54 +23,83 @@ const MainScreen: React.FC = () => {
       description,
       state: "No Realizado",
     };
-
     setTasks([...tasks, newTask]);
     setTitle('');
     setDescription('');
-    Keyboard.dismiss();
   }
 
-  const handleBlur = () => {
-    Keyboard.dismiss();
+
+  const handleTaskStateChange = (id: number) => {
+    const newTasks = tasks.map((task) => {
+      if (task.id === id) {
+        return {
+          ...task,
+          state: task.state === "No Realizado" ? "Realizado" : "No Realizado"
+        }
+      }
+      return task;
+    });
+    setTasks(newTasks);
   }
 
   return (
-    <View>
-      {tasks.length === 0 ? (
-        <Text>La lista está vacía</Text>
-      ) : (
+    <SafeAreaView style={styles.wrapper}>
+      <KeyboardAvoidingView>
         <FlatList
           data={tasks}
-          renderItem={({ item }) => <Card title={item.title} description={item.description} state={item.state} />}
+          ListEmptyComponent={<Text>La lista está vacía (⊙_⊙;)</Text>}
+          renderItem={({ item }) => <Card title={item.title} description={item.description} state={item.state} onPress={() => handleTaskStateChange(item.id)} />}
           keyExtractor={(item) => item.id.toString()}
         />
-      )}
-      <View>
-        <TextInput 
-          value={title}
-          onChangeText={setTitle}
-          onBlur={handleBlur}
-          onSubmitEditing={() => { descriptionInputRef.current?.focus()}}
-          placeholder="Título"
-          returnKeyType="next"
-          ref={titleInputRef}
-        />
-        <TextInput 
-          value={description}
-          onChangeText={setDescription}
-          onBlur={handleBlur}
-          onSubmitEditing={handleAddTask}
-          placeholder="Descripción"
-          returnKeyType="done"
-          ref={descriptionInputRef}
-        />
-        <Button 
-          title="Agregar Tarea"
-          onPress={handleAddTask}
-        />
-      </View>
-    </View>
+
+        <View style={styles.card}>
+          <TextInput
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Título"
+            returnKeyType="next"
+            onSubmitEditing={() => { descriptionInputRef.current?.focus() }}
+            style={styles.input}
+          />
+          <TextInput
+            value={description}
+            onChangeText={setDescription}
+            placeholder="Descripción"
+            returnKeyType="done"
+            ref={descriptionInputRef}
+            onSubmitEditing={() => { handleAddTask() }}
+            style={styles.input}
+          />
+          <Button
+            title="Agregar Tarea"
+            onPress={handleAddTask}
+          />
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: 'lightgray'
+  },
+
+  card: {
+    padding: 5,
+    margin: 10,
+    borderWidth: 1,
+    backgroundColor: 'white'
+  },
+
+  input: {
+    padding: 10,
+    margin: 10,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 5
+  }
+})
 
 export default MainScreen;
