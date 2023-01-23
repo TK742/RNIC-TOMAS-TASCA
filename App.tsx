@@ -44,14 +44,14 @@ const MainScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.wrapper}>
+      <FlatList
+        data={tasks}
+        ListEmptyComponent={<Text>La lista está vacía (⊙_⊙;)</Text>}
+        renderItem={({ item }) => <Card title={item.title} description={item.description} state={item.state} onPress={() => handleTaskStateChange(item.id)} />}
+        keyExtractor={(item) => item.id.toString()}
+        scrollEnabled
+      />
       <KeyboardAvoidingView>
-        <FlatList
-          data={tasks}
-          ListEmptyComponent={<Text>La lista está vacía (⊙_⊙;)</Text>}
-          renderItem={({ item }) => <Card title={item.title} description={item.description} state={item.state} onPress={() => handleTaskStateChange(item.id)} />}
-          keyExtractor={(item) => item.id.toString()}
-        />
-
         <View style={styles.card}>
           <TextInput
             value={title}
