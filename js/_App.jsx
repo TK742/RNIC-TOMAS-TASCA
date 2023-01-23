@@ -1,20 +1,11 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, FlatList, TextInput, Button, Keyboard } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, FlatList, TextInput, Button, Keyboard, Touchable } from 'react-native';
 import Card from './src/Card';
 
-interface Task {
-  id: number,
-  title: string,
-  description: string,
-  state: string
-}
-
-const MainScreen: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
+const MainScreen = () => {
+  const [tasks, setTasks] = useState([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const titleInputRef = useRef<TextInput>(null);
-  const descriptionInputRef = useRef<TextInput>(null);
 
   const handleAddTask = () => {
     const newTask = {
@@ -42,7 +33,7 @@ const MainScreen: React.FC = () => {
         <FlatList
           data={tasks}
           renderItem={({ item }) => <Card title={item.title} description={item.description} state={item.state} />}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.id}
         />
       )}
       <View>
@@ -50,10 +41,10 @@ const MainScreen: React.FC = () => {
           value={title}
           onChangeText={setTitle}
           onBlur={handleBlur}
-          onSubmitEditing={() => { descriptionInputRef.current?.focus()}}
+          onSubmitEditing={() => { this.descriptionInput.focus()}}
           placeholder="Título"
           returnKeyType="next"
-          ref={titleInputRef}
+          ref={(input) => { this.titleInput = input; }}
         />
         <TextInput 
           value={description}
@@ -62,9 +53,9 @@ const MainScreen: React.FC = () => {
           onSubmitEditing={handleAddTask}
           placeholder="Descripción"
           returnKeyType="done"
-          ref={descriptionInputRef}
+          ref={(input) => { this.descriptionInput = input; }}
         />
-        <Button 
+        <Touchable 
           title="Agregar Tarea"
           onPress={handleAddTask}
         />
