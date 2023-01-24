@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, FlatList, TextInput, Button, SafeAreaView, KeyboardAvoidingView, StyleSheet, ImageBackground } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, FlatList, TextInput, Button, SafeAreaView, KeyboardAvoidingView, StyleSheet, AppState, Platform } from 'react-native';
 import Card from './src/components/Card';
 import mockedData from './src/constants/MockedData';
 
@@ -15,6 +15,19 @@ const MainScreen: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const descriptionInputRef = useRef<TextInput>(null);
+  const [appState, setAppState] = useState<string>(AppState.currentState);
+
+
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: string) => {
+      if (appState.match(/inactive|background/) && nextAppState === 'active') {
+        setTasks(mockedData);
+      }
+      setAppState(nextAppState);
+    }
+    AppState.addEventListener('change', handleAppStateChange);
+    // return () => AppState.removeEventListener('change', handleAppStateChange);
+  }, []);
 
   const handleAddTask = () => {
     const newTask = {
@@ -65,6 +78,7 @@ const MainScreen: React.FC = () => {
             value={description}
             onChangeText={setDescription}
             placeholder="Descripción"
+            placeholderTextColor={Platform.OS === 'ios' ? 'black' : 'white'}
             returnKeyType="done"
             ref={descriptionInputRef}
             onSubmitEditing={() => { handleAddTask() }}
@@ -83,22 +97,24 @@ const MainScreen: React.FC = () => {
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    backgroundColor: 'lightgray'
+    backgroundColor: Platform.OS === 'ios' ? 'lightgray' : '#333',
   },
 
   card: {
     padding: 5,
     margin: 10,
     borderWidth: 1,
-    backgroundColor: 'white'
+    backgroundColor: Platform.OS === 'ios' ? 'white' : 'black',
+    borderRadius: 10
   },
 
   input: {
     padding: 10,
     margin: 10,
+    color: 'white',
     borderWidth: 1,
     borderColor: 'gray',
-    borderRadius: 5
+    borderRadius: 10,
   }
 })
 

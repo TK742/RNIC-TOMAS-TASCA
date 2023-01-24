@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Button, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 
 interface Props {
   title: string,
@@ -14,12 +14,9 @@ const Card: React.FC<Props> = ({ title, description, state, onPress }) => {
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.description}>{description}</Text>
       <Text style={styles.description}>Estado: {state}</Text>
-      <TouchableOpacity
-        onPress={onPress}
-        style={styles.button}>
-        <Text>{state === "No Realizado" ? "Marcar como Realizado" : "Marcar como No Realizado"}</Text>
-      </TouchableOpacity>
-
+      <Button
+        title={state === "No Realizado" ? "Marcar como Realizado" : "Marcar como No Realizado"}
+        onPress={onPress}/>
     </View>
   );
 };
@@ -29,22 +26,21 @@ const styles = StyleSheet.create({
     padding: 5,
     margin: 10,
     borderWidth: 1,
-    backgroundColor: 'white'
+    backgroundColor: Platform.OS === 'ios' ? 'white' : 'black',
+    borderRadius: 10
   },
 
   title: {
+    fontSize: 20,
     fontWeight: '700',
-    fontSize: 20
+    color: Platform.OS === 'ios' ? 'black' : 'white'
   },
 
   description: {
     marginTop: 10,
-    fontStyle: 'italic'
-  },
-
-  button: {
-    margin: 10,
-    backgroundColor: 'lightblue'
+    marginBottom: 10,
+    fontStyle: 'italic',
+    color: Platform.OS === 'ios' ? 'black' : 'white'
   }
 })
 
