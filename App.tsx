@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, FlatList, TextInput, Button, SafeAreaView, KeyboardAvoidingView, StyleSheet, AppState, Platform } from 'react-native';
+import { StatusBar, View, Text, FlatList, TextInput, Button, SafeAreaView, KeyboardAvoidingView, StyleSheet, AppState, Platform } from 'react-native';
 import Card from './src/components/Card';
 import mockedData from './src/constants/MockedData';
 
@@ -15,19 +15,29 @@ const MainScreen: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const descriptionInputRef = useRef<TextInput>(null);
-  const [appState, setAppState] = useState<string>(AppState.currentState);
-
+  const appState = useRef(AppState.currentState);
+  const [appStateVisible, setAppStateVisible] = useState(appState.current);
 
   useEffect(() => {
-    const handleAppStateChange = (nextAppState: string) => {
-      if (appState.match(/inactive|background/) && nextAppState === 'active') {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        console.log('App has come to the foreground!');
         setTasks(mockedData);
       }
-      setAppState(nextAppState);
-    }
-    AppState.addEventListener('change', handleAppStateChange);
-    // return () => AppState.removeEventListener('change', handleAppStateChange);
+
+      appState.current = nextAppState;
+      setAppStateVisible(appState.current);
+      console.log('AppState', appState.current);
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
+
 
   const handleAddTask = () => {
     const newTask = {
@@ -57,6 +67,7 @@ const MainScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.wrapper}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <FlatList
         data={tasks}
         ListEmptyComponent={<Text>La lista está vacía (⊙_⊙;)</Text>}
