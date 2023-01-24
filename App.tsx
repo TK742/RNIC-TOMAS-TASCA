@@ -1,118 +1,132 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, { useState, useRef, useEffect } from 'react';
+import { StatusBar, View, Text, FlatList, TextInput, Button, SafeAreaView, KeyboardAvoidingView, StyleSheet, AppState, Platform } from 'react-native';
+import Card from './src/components/Card';
+import mockedData from './src/constants/MockedData';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
-
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
+interface Task {
+  id: number,
+  title: string,
+  description: string,
+  state: string
 }
 
-function App(): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+const MainScreen: React.FC = () => {
+  const [tasks, setTasks] = useState<Task[]>(mockedData);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const descriptionInputRef = useRef<TextInput>(null);
+  const appState = useRef(AppState.currentState);
+  const [appStateVisible, setAppStateVisible] = useState(appState.current);
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        console.log('App has come to the foreground!');
+        setTasks(mockedData);
+      }
+
+      appState.current = nextAppState;
+      setAppStateVisible(appState.current);
+      console.log('AppState', appState.current);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+
+  const handleAddTask = () => {
+    const newTask = {
+      id: tasks.length + 1,
+      title,
+      description,
+      state: "No Realizado",
+    };
+    setTasks([...tasks, newTask]);
+    setTitle('');
+    setDescription('');
+  }
+
+
+  const handleTaskStateChange = (id: number) => {
+    const newTasks = tasks.map((task) => {
+      if (task.id === id) {
+        return {
+          ...task,
+          state: task.state === "No Realizado" ? "Realizado" : "No Realizado"
+        }
+      }
+      return task;
+    });
+    setTasks(newTasks);
+  }
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
+    <SafeAreaView style={styles.wrapper}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <FlatList
+        data={tasks}
+        ListEmptyComponent={<Text>La lista está vacía (⊙_⊙;)</Text>}
+        renderItem={({ item }) => <Card title={item.title} description={item.description} state={item.state} onPress={() => handleTaskStateChange(item.id)} />}
+        keyExtractor={(item) => item.id.toString()}
+        scrollEnabled
       />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+      <KeyboardAvoidingView>
+        <View style={styles.card}>
+          <TextInput
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Título"
+            returnKeyType="next"
+            onSubmitEditing={() => { descriptionInputRef.current?.focus() }}
+            style={styles.input}
+          />
+          <TextInput
+            value={description}
+            onChangeText={setDescription}
+            placeholder="Descripción"
+            placeholderTextColor={Platform.OS === 'ios' ? 'black' : 'white'}
+            returnKeyType="done"
+            ref={descriptionInputRef}
+            onSubmitEditing={() => { handleAddTask() }}
+            style={styles.input}
+          />
+          <Button
+            title="Agregar Tarea"
+            onPress={handleAddTask}
+          />
         </View>
-      </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  wrapper: {
+    flex: 1,
+    backgroundColor: Platform.OS === 'ios' ? 'lightgray' : '#333',
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
 
-export default App;
+  card: {
+    padding: 5,
+    margin: 10,
+    borderWidth: 1,
+    backgroundColor: Platform.OS === 'ios' ? 'white' : 'black',
+    borderRadius: 10
+  },
+
+  input: {
+    padding: 10,
+    margin: 10,
+    color: 'white',
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 10,
+  }
+})
+
+export default MainScreen;
