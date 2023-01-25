@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { StatusBar, View, Text, FlatList, TextInput, Button, SafeAreaView, KeyboardAvoidingView, StyleSheet, AppState, Platform } from 'react-native';
 import Card from './src/components/Card';
 import mockedData from './src/constants/MockedData';
+import { Wrapper, CardContainer, Input } from './src/types/theme';
 
 interface Task {
   id: number,
@@ -66,7 +67,7 @@ const MainScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.wrapper}>
+    <Wrapper>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <FlatList
         data={tasks}
@@ -76,16 +77,15 @@ const MainScreen: React.FC = () => {
         scrollEnabled
       />
       <KeyboardAvoidingView>
-        <View style={styles.card}>
-          <TextInput
+        <CardContainer>
+          <Input
             value={title}
             onChangeText={setTitle}
             placeholder="Título"
             returnKeyType="next"
             onSubmitEditing={() => { descriptionInputRef.current?.focus() }}
-            style={styles.input}
           />
-          <TextInput
+          <Input
             value={description}
             onChangeText={setDescription}
             placeholder="Descripción"
@@ -93,40 +93,15 @@ const MainScreen: React.FC = () => {
             returnKeyType="done"
             ref={descriptionInputRef}
             onSubmitEditing={() => { handleAddTask() }}
-            style={styles.input}
           />
           <Button
             title="Agregar Tarea"
             onPress={handleAddTask}
           />
-        </View>
+        </CardContainer>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </Wrapper>
   );
 };
-
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    backgroundColor: Platform.OS === 'ios' ? 'lightgray' : '#333',
-  },
-
-  card: {
-    padding: 5,
-    margin: 10,
-    borderWidth: 1,
-    backgroundColor: Platform.OS === 'ios' ? 'white' : 'black',
-    borderRadius: 10
-  },
-
-  input: {
-    padding: 10,
-    margin: 10,
-    color: 'white',
-    borderWidth: 1,
-    borderColor: 'gray',
-    borderRadius: 10,
-  }
-})
 
 export default MainScreen;
