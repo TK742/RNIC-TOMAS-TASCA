@@ -3,6 +3,7 @@ import { StatusBar, View, Text, FlatList, TextInput, Button, SafeAreaView, Keybo
 import Card from './src/components/Card';
 import mockedData from './src/constants/MockedData';
 import { Wrapper, CardContainer, Input } from './src/types/theme';
+import RNBootSplash from "react-native-bootsplash";
 
 interface Task {
   id: number,
@@ -12,6 +13,10 @@ interface Task {
 }
 
 const MainScreen: React.FC = () => {
+  useEffect(() => {
+    RNBootSplash.hide({fade: true});
+  });
+  
   const [tasks, setTasks] = useState<Task[]>(mockedData);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
